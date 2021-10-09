@@ -1,0 +1,96 @@
+CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+DROP DOMAIN IF EXISTS email;
+CREATE DOMAIN email AS citext CHECK (value ~ '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$' AND length(value) <= 320);
+
+CREATE TABLE company (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid ()
+);
+
+CREATE TABLE users (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+    company_id uuid NOT NULL REFERENCES company (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    email email NOT NULL UNIQUE,
+    password_hash text NOT NULL
+);
+
+CREATE INDEX idx_user_company_id ON users (company_id);
+
+CREATE TABLE technician (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+    company_id uuid NOT NULL REFERENCES company (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    name varchar(500) NOT NULL,
+    description varchar(500) NOT NULL
+);
+
+CREATE INDEX idx_technician_company_id ON technician (company_id);
+
+CREATE TABLE service_type (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+    company_id uuid NOT NULL REFERENCES company (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    name varchar(500) NOT NULL,
+    description varchar(500) NOT NULL
+);
+
+CREATE INDEX idx_service_type_company_id ON service_type (company_id);
+
+CREATE TABLE service (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+    service_type_id uuid NOT NULL REFERENCES service_type (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    name varchar(500) NOT NULL,
+    description varchar(500) NOT NULL,
+    price bigint NOT NULL CHECK (price >= 0),
+    length bigint NOT NULL CHECK (length > 0)
+);
+
+CREATE INDEX idx_service_type_id ON service (service_type_id);
+
+CREATE TABLE service_technician (
+    service_id uuid NOT NULL REFERENCES service (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    technician_id uuid NOT NULL REFERENCES technician (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (service_id, technician_id)
+);
+
+CREATE TABLE booking (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
+
+    technician_id uuid NOT NULL REFERENCES technician (id) ON DELETE RESTRICT,
+    company_id uuid NOT NULL REFERENCES company (id) ON DELETE RESTRICT,
+    service_id uuid NOT NULL REFERENCES service (id) ON DELETE RESTRICT,
+
+    duration tstzrange,
+    CONSTRAINT duration_enforce_bounds CHECK (lower_inc(duration) AND NOT upper_inc(duration)),
+
+    reserved_duration tstzrange,
+    CONSTRAINT reserved_duration_no_overlap EXCLUDE USING gist (reserved_duration WITH &&, technician_id WITH =, company_id WITH =),
+    CONSTRAINT reserved_duration_enforce_bounds CHECK (lower_inc(reserved_duration) AND NOT upper_inc(reserved_duration)),
+
+    client_name varchar(200) NOT NULL CHECK (length(client_name) > 0), 
+    client_mobile varchar(20) NOT NULL CHECK (client_mobile NOT LIKE '%[^0-9]%' AND length(client_mobile) > 0),
+    client_email email NOT NULL,
+
+    client_tsvector tsvector GENERATED ALWAYS AS (to_tsvector('english', client_name || ' ' || client_mobile || ' ' || client_email)) STORED,
+
+    price bigint NOT NULL CHECK (price >= 0)
+);
+
+CREATE INDEX idx_booking_client_tsvector ON booking USING GIN (client_tsvector);
+CREATE INDEX idx_booking_duration ON booking USING gist (duration, technician_id, company_id);
+
+CREATE INDEX idx_booking_technician_id ON booking (technician_id);
+CREATE INDEX idx_booking_company_id ON booking (company_id);
+CREATE INDEX idx_booking_service_id ON booking (service_id);
+
+CREATE TABLE availability (
+    id BIGSERIAL PRIMARY KEY,
+
+    technician_id uuid NOT NULL REFERENCES technician (id) ON DELETE CASCADE,
+
+    duration tstzrange NOT NULL,
+    CONSTRAINT duration_enforce_bounds CHECK (lower_inc(duration) AND NOT upper_inc(duration)),
+    CONSTRAINT duration_no_adjacent EXCLUDE USING gist (duration WITH -|-, technician_id WITH =),
+    CONSTRAINT duration_no_overlap EXCLUDE USING gist (duration WITH &&, technician_id WITH =)
+);
+
+CREATE INDEX idx_availability_technician_id ON availability (technician_id);

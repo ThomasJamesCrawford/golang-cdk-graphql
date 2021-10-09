@@ -1,0 +1,46 @@
+type User {
+  id: ID!
+  email: String!
+}
+
+type Company {
+  id: ID!
+  users: [User!]!
+  technicians: [Technician!]!
+  serviceTypes: [ServiceType!]!
+}
+
+type ServiceType {
+  id: ID!
+  name: String!
+  description: String!
+  services: [Service!]!
+}
+
+type Service {
+  id: ID!
+  name: String!
+  description: String!
+  length: Integer!
+  price: Integer!
+  technicians: [Technician!]!
+}
+
+type Technician {
+  id: ID!
+  name: String!
+  description: String!
+}
+
+input Login {
+  username: String!
+  password: String!
+}
+
+type Mutation {
+  login(input: Login!): String!
+}
+
+type Query {
+  company(id: ID!): Company!
+}

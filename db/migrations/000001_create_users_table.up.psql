@@ -83,7 +83,7 @@ CREATE INDEX idx_booking_company_id ON booking (company_id);
 CREATE INDEX idx_booking_service_id ON booking (service_id);
 
 CREATE TABLE availability (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     technician_id uuid NOT NULL REFERENCES technician (id) ON DELETE CASCADE,
 

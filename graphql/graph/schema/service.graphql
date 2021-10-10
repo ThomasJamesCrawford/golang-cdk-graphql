@@ -1,0 +1,8 @@
+type Service {
+  id: ID!
+  name: String!
+  description: String!
+  length: Int!
+  price: Int!
+  technicians: [Technician!]!
+}

@@ -19,7 +19,7 @@ func Test_main(t *testing.T) {
 		postBody, _ := json.Marshal(map[string]string{
 			"query": `
 query {
-	links {
+	company(id: "aa0ed2d3-4bee-4471-9421-825b4b51d477") {
 		id
 	}
 }

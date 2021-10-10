@@ -11,44 +11,23 @@ import (
 	"github.com/ThomasJamesCrawford/golang-cdk-graphql/graphql/graph/model"
 )
 
-func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) (*model.Link, error) {
-	var link model.Link
-	var user model.User
-	link.Address = input.Address
-	link.Title = input.Title
-	user.Name = "test"
-	link.User = &user
-	return &link, nil
-}
-
-func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
+func (r *companyResolver) ID(ctx context.Context, obj *model.Company) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
+func (r *userResolver) ID(ctx context.Context, obj *model.User) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
+func (r *userResolver) Email(ctx context.Context, obj *model.User) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
-	var links []*model.Link
-	dummyLink := model.Link{
-		Title:   "our dummy link",
-		Address: "https://address.org",
-		User:    &model.User{Name: "admin"},
-	}
-	links = append(links, &dummyLink)
-	return links, nil
-}
+// Company returns generated.CompanyResolver implementation.
+func (r *Resolver) Company() generated.CompanyResolver { return &companyResolver{r} }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+// User returns generated.UserResolver implementation.
+func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
 
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
+type companyResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }

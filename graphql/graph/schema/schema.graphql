@@ -17,15 +17,6 @@ type ServiceType {
   services: [Service!]!
 }
 
-type Service {
-  id: ID!
-  name: String!
-  description: String!
-  length: Integer!
-  price: Integer!
-  technicians: [Technician!]!
-}
-
 type Technician {
   id: ID!
   name: String!
@@ -37,10 +28,14 @@ input Login {
   password: String!
 }
 
-type Mutation {
-  login(input: Login!): String!
-}
+scalar Time
 
-type Query {
-  company(id: ID!): Company!
-}
+directive @goModel(
+  model: String
+  models: [String!]
+) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+
+directive @goField(
+  forceResolver: Boolean
+  name: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION

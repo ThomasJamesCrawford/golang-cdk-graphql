@@ -1,14 +1,11 @@
 package model
 
-import "github.com/jackc/pgtype"
-
 type Service struct {
-	ID            pgtype.UUID
-	ServiceTypeId pgtype.UUID
-	Name          pgtype.Varchar
-	Description   pgtype.Varchar
-	Length        pgtype.Int8
-	Price         pgtype.Int8
+	ID          string
+	Name        string
+	Description string
+	Length      int
+	Price       int
 }
 
 func (c *Service) Technicians() []*Technician {

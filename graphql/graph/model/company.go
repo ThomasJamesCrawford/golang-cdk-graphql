@@ -1,9 +1,7 @@
 package model
 
-import "github.com/jackc/pgtype"
-
 type Company struct {
-	ID pgtype.UUID `json:"id"`
+	ID string
 }
 
 func (c *Company) Users() []*User {

@@ -11,11 +11,9 @@ import (
 )
 
 func (r *queryResolver) Company(ctx context.Context, id string) (*model.Company, error) {
-	company := &model.Company{}
-
-	company.ID.Set(id)
-
-	return company, nil
+	return &model.Company{
+		ID: id,
+	}, nil
 }
 
 // Query returns generated.QueryResolver implementation.

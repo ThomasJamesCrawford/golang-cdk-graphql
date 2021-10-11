@@ -2,12 +2,14 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/ThomasJamesCrawford/golang-cdk-graphql/graphql/pkg/db"
 	"github.com/ThomasJamesCrawford/golang-cdk-graphql/graphql/pkg/gqlgen"
 	"github.com/bradleyjkemp/cupaloy"
 )
@@ -35,7 +37,11 @@ query {
 
 		res := httptest.NewRecorder()
 
-		gqlgen.GetServer().ServeHTTP(res, req)
+		db, _ := db.InitDB()
+
+		db.Query(context.Background(), "INSERT INTO company (id) VALUES ('aa0ed2d3-4bee-4471-9421-825b4b51d477')")
+
+		gqlgen.GetServer(db).ServeHTTP(res, req)
 
 		cupaloy.SnapshotT(t, res.Body.String())
 	})

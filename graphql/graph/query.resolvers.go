@@ -6,14 +6,13 @@ package graph
 import (
 	"context"
 
+	"github.com/ThomasJamesCrawford/golang-cdk-graphql/graphql/graph/dataloader"
 	"github.com/ThomasJamesCrawford/golang-cdk-graphql/graphql/graph/generated"
 	"github.com/ThomasJamesCrawford/golang-cdk-graphql/graphql/graph/model"
 )
 
 func (r *queryResolver) Company(ctx context.Context, id string) (*model.Company, error) {
-	return &model.Company{
-		ID: id,
-	}, nil
+	return dataloader.For(ctx).CompanyByID.Load(id)
 }
 
 // Query returns generated.QueryResolver implementation.

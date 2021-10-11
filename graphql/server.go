@@ -10,19 +10,19 @@ import (
 )
 
 func main() {
-	_, err := db.InitDB()
+	db, err := db.InitDB()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
-	defer db.DB.Close()
+	defer db.Close()
 
-	srv := gqlgen.GetServer()
+	srv := gqlgen.GetServer(db)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
 	http.Handle("/graphql", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", "8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Panic(http.ListenAndServe(":8080", nil))
 }
